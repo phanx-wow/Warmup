@@ -1,0 +1,10 @@
+## Interface: 60000
+## DefaultState: disabled
+
+## Title: Warmup
+## Notes: Tracks how long between loadup events
+## Author: Tekkub
+
+## SavedVariables: WarmupSV
+
+Warmup.lua
