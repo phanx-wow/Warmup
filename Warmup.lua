@@ -60,7 +60,7 @@ containerFrame:SetScript("OnShow", function(self)
 	outputFrame:EnableMouseWheel(true)
 	outputFrame:SetScript("OnMouseWheel", function(self, delta)
 		if IsControlKeyDown() then
-			return delta > 0 and self:PageUp() or delta < 0 and PageDown()
+			return delta > 0 and self:PageUp() or delta < 0 and self:PageDown()
 		end
 		local n = IsShiftKeyDown() and self:GetNumMessages() or 5
 		if delta > 0 then
