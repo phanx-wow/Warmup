@@ -2,33 +2,79 @@
 -- Further updated by Phanx for WoW 6.x
 
 local containerFrame = CreateFrame("Frame", "WarmupOutputFrame", UIParent)
-containerFrame:SetPoint("LEFT")
-containerFrame:SetSize(500, 400)
-containerFrame:EnableMouse(true)
-containerFrame:SetMovable(true)
-containerFrame:CreateTitleRegion():SetAllPoints(true)
-containerFrame:SetBackdrop(GameTooltip:GetBackdrop())
-containerFrame:SetBackdropColor(0, 0, 0)
-containerFrame:SetBackdropBorderColor(0.9, 0.82, 0)
+containerFrame:Hide()
 
 local outputFrame = CreateFrame("ScrollingMessageFrame", "WarmupChatFrame", containerFrame)
-outputFrame:SetPoint("TOPLEFT", 7, -7)
-outputFrame:SetPoint("BOTTOMRIGHT", -8, 9)
 outputFrame:SetFontObject("ChatFontNormal")
-outputFrame:SetJustifyH("LEFT")
 outputFrame:SetMaxLines(512)
-outputFrame:EnableMouseWheel(true)
-outputFrame:SetScript("OnMouseWheel", function(self, delta)
-	local n = IsShiftKeyDown() and 10 or 1
-	if delta > 0 then
-		for i = 1, n do
-			self:ScrollUp()
+
+containerFrame:SetScript("OnShow", function(self)
+	self:SetScript("OnShow", nil)
+
+	self:SetPoint("LEFT", 50, 100)
+	self:SetSize(525, 390)
+	self:EnableMouse(true)
+	self:SetMovable(true)
+
+	outputFrame:SetPoint("TOPLEFT", 12, -7 - 22)
+	outputFrame:SetPoint("BOTTOMRIGHT", -8, 12)
+	outputFrame:SetJustifyH("LEFT")
+
+	self:SetBackdrop({
+		bgFile = "Interface\\Tooltips\\UI-Tooltip-Background", tile = true, tileSize = 16,
+		edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border", edgeSize = 16,
+		insets = { left = 4, right = 4, top = 4,  bottom = 4 },
+	})
+	self:SetBackdropColor(0, 0, 0)
+	self:SetBackdropBorderColor(0.8, 0.8, 0.8)
+
+	local bg = self:CreateTexture(nil, "BORDER")
+	bg:SetPoint("BOTTOMLEFT", 5, 5)
+	bg:SetPoint("TOPRIGHT", -5, -5)
+	bg:SetAtlas("collections-background-tile")
+	bg:SetAlpha(0.9)
+	--bg:SetVertexColor(204/255, 225/255, 1)
+
+	local close = CreateFrame("Button", nil, self, "UIPanelCloseButton")
+	close:SetPoint("TOPRIGHT")
+
+	local title = self:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+	title:SetPoint("TOPLEFT", 12, -2)
+	title:SetPoint("RIGHT", close, "LEFT", -6, 0)
+	title:SetHeight(close:GetHeight())
+	title:SetJustifyH("LEFT")
+	title:SetText("Warmup")
+
+	local div = self:CreateTexture(nil, "ARTWORK")
+	div:SetPoint("TOPLEFT", 8, -26)
+	div:SetPoint("TOPRIGHT", -8, -26)
+	div:SetHeight(8)
+	div:SetTexture("Interface\\Common\\UI-TooltipDivider-Transparent")
+
+	local tr = self:CreateTitleRegion()
+	tr:SetPoint("TOPLEFT")
+	tr:SetPoint("TOPRIGHT")
+	tr:SetPoint("BOTTOM", div)
+
+	outputFrame:SetFading(false)
+	outputFrame:EnableMouseWheel(true)
+	outputFrame:SetScript("OnMouseWheel", function(self, delta)
+		if delta > 0 then
+			if IsShiftKeyDown() then
+				return self:ScrollToTop()
+			end
+			for i = 1, (IsControlKeyDown() and 15 or 5) do
+				self:ScrollUp()
+			end
+		elseif delta < 0 then
+			if IsShiftKeyDown() then
+				return self:ScrollToBottom()
+			end
+			for i = 1, (IsControlKeyDown() and 15 or 5) do
+				self:ScrollDown()
+			end
 		end
-	elseif delta < 0 then
-		for i = 1, n do
-			self:ScrollDown()
-		end
-	end
+	end)
 end)
 
 collectgarbage("stop")
@@ -136,12 +182,6 @@ do
 	end
 end
 
-
-function Warmup:OnLoad()
-	tinsert(UISpecialFrames, "WarmupOutputFrame")
-	frame:RegisterAllEvents()
-end
-
 do
 	for i=1,GetNumAddOns() do
 		if IsAddOnLoaded(i) then
@@ -241,8 +281,7 @@ function Warmup:VARIABLES_LOADED()
 	SLASH_RELOADNODISABLE1 = "/rlnd"
 ]]
 	SlashCmdList["WARMUP"] = function()
-		if WarmupOutputFrame:IsVisible() then WarmupOutputFrame:Hide()
-		else WarmupOutputFrame:Show() end
+		WarmupOutputFrame:SetShown(not WarmupOutputFrame:IsShown())
 	end
 
 	SLASH_WARMUP1 = "/wu"
@@ -255,6 +294,8 @@ end
 
 
 function Warmup:PLAYER_LOGIN()
+	tinsert(UISpecialFrames, "WarmupOutputFrame")
+	C_Timer.After(2, function() WarmupOutputFrame:Show() end) -- auto open window on login, delay required because of UISpecialFrames
 	logging = true
 	frame:RegisterEvent("PLAYER_ENTERING_WORLD")
 end
@@ -305,6 +346,4 @@ function Warmup:PLAYER_LOGOUT()
 	if not reloading then sv.time = nil end
 end
 
-
-Warmup:OnLoad()
-
+frame:RegisterAllEvents()
