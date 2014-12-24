@@ -59,18 +59,16 @@ containerFrame:SetScript("OnShow", function(self)
 	outputFrame:SetFading(false)
 	outputFrame:EnableMouseWheel(true)
 	outputFrame:SetScript("OnMouseWheel", function(self, delta)
+		if IsControlKeyDown() then
+			return delta > 0 and self:PageUp() or delta < 0 and PageDown()
+		end
+		local n = IsShiftKeyDown() and self:GetNumMessages() or 5
 		if delta > 0 then
-			if IsShiftKeyDown() then
-				return self:ScrollToTop()
-			end
-			for i = 1, (IsControlKeyDown() and 15 or 5) do
+			for i = 1, n do
 				self:ScrollUp()
 			end
 		elseif delta < 0 then
-			if IsShiftKeyDown() then
-				return self:ScrollToBottom()
-			end
-			for i = 1, (IsControlKeyDown() and 15 or 5) do
+			for i = 1, n do
 				self:ScrollDown()
 			end
 		end
