@@ -196,6 +196,12 @@ function Warmup:Init()
 	if not WarmupSV then WarmupSV = {} end
 	sv = WarmupSV
 	sv.addoninfo = {}
+
+	local _ReloadUI = ReloadUI
+	function ReloadUI()
+		sv.reloadingUI = true
+		_ReloadUI()
+	end
 end
 
 
@@ -295,7 +301,15 @@ end
 
 function Warmup:PLAYER_LOGIN()
 	tinsert(UISpecialFrames, "WarmupOutputFrame")
-	C_Timer.After(2, function() WarmupOutputFrame:Show() end) -- auto open window on login, delay required because of UISpecialFrames
+	if sv.reloadingUI then
+		sv.reloadingUI = nil
+	else
+		C_Timer.After(2, function() -- auto open window on login, delay required because of UISpecialFrames
+			if not UnitAffectingCombat("player") then
+				WarmupOutputFrame:Show()
+			end
+		end)
+	end
 	logging = true
 	frame:RegisterEvent("PLAYER_ENTERING_WORLD")
 end
@@ -328,7 +342,7 @@ end
 
 
 function Warmup:PLAYER_LEAVING_WORLD()
-	--sv.time = GetTime()
+	sv.time = GetTime()
 	frame:RegisterAllEvents()
 	frame:RegisterEvent("PLAYER_ENTERING_WORLD")
 	frame:RegisterEvent("PLAYER_LOGOUT")
@@ -343,7 +357,7 @@ end
 
 
 function Warmup:PLAYER_LOGOUT()
-	if not reloading then sv.time = nil end
+	if not sv.reloadingUI then sv.time = nil end
 end
 
 frame:RegisterAllEvents()
