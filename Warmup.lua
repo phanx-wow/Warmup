@@ -316,11 +316,8 @@ end
 function Warmup:PLAYER_ENTERING_WORLD()
 	if logging then
 		local entrytime = stop()/1000
-
 		PutOut("World entry", threshcolors[4], entrytime)
-
 		PutOut("Total time", threshcolors[4], entrytime + totaltime + gctime)
-
 		sv.time = nil
 		varsloadtime = nil
 	elseif leftworld then
@@ -334,7 +331,7 @@ function Warmup:PLAYER_ENTERING_WORLD()
 	frame:UnregisterEvent("PLAYER_LOGOUT")
 	frame:UnregisterEvent("PLAYER_ENTERING_WORLD")
 
-	self:DumpEvents()
+	--self:DumpEvents()
 	eventcounts = nil
 end
 
